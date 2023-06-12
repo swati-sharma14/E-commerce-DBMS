@@ -1,0 +1,63 @@
+-- Roll up query to get the total sales revenue by category and seller:
+
+SELECT c.categoryname, s.sellername, SUM(p.price)
+FROM categories c
+INNER JOIN products p ON c.categoryid = p.categoryid
+INNER JOIN sellers s ON p.sellerid = s.sellerid
+GROUP BY ROLLUP (c.categoryname, s.sellername);
+
+-- Cube query to get the total sales revenue by category, seller, and user:
+
+SELECT c.categoryname, s.sellername, u.fullname, SUM(p.price)
+FROM categories c
+INNER JOIN products p ON c.categoryid = p.categoryid
+INNER JOIN sellers s ON p.sellerid = s.sellerid
+INNER JOIN carts ca ON p.productid = ca.productid
+INNER JOIN orders o ON ca.orderid = o.orderid
+INNER JOIN users u ON o.userid = u.userid
+GROUP BY CUBE (c.categoryname, s.sellername, u.fullname);
+
+-- Pivot table query to get the total sales revenue by category and seller, with sellers as columns:
+
+SELECT c.categoryname, 
+    SUM(CASE WHEN s.sellername = 'seller1' THEN p.price ELSE 0 END) AS seller1_revenue,
+    SUM(CASE WHEN s.sellername = 'seller2' THEN p.price ELSE 0 END) AS seller2_revenue,
+    SUM(CASE WHEN s.sellername = 'seller3' THEN p.price ELSE 0 END) AS seller3_revenue
+FROM categories c
+INNER JOIN products p ON c.categoryid = p.categoryid
+INNER JOIN sellers s ON p.sellerid = s.sellerid
+GROUP BY c.categoryname;
+
+
+
+-- Find the top 10 sellers based on revenue:
+
+SELECT sellers.sellername, SUM(products.price)
+FROM sellers
+JOIN products ON sellers.sellerid = products.sellerid
+JOIN carts ON products.productid = carts.productid
+JOIN orders ON carts.orderid = orders.orderid
+WHERE orders.haspaid = 1
+GROUP BY sellers.sellername
+ORDER BY SUM(products.price) DESC
+LIMIT 10;
+
+
+-- Roll up query to get the total number of product returns by category:
+
+SELECT c.categoryname, COUNT(pr.returnid)
+FROM categories c
+INNER JOIN products p ON c.categoryid = p.categoryid
+INNER JOIN prod_returns pr ON p.productid = pr.productid
+GROUP BY ROLLUP (c.categoryname);
+
+
+-- Cube query to get the total number of customer queries by category, seller, and care representative:
+
+SELECT c.categoryname, s.sellername, cc.carename, COUNT(cq.queryid)
+FROM categories c
+INNER JOIN products p ON c.categoryid = p.categoryid
+INNER JOIN sellers s ON p.sellerid = s.sellerid
+INNER JOIN customer_queries cq ON cq.userid = p.sellerid OR cq.userid = s.sellerid
+INNER JOIN customer_care cc ON cq.careid = cc.id
+GROUP BY CUBE (c.categoryname, s.sellername, cc.carename);

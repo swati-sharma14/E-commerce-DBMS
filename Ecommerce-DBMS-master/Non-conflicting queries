@@ -1,0 +1,87 @@
+-- Query to place an order for a user and update the corresponding carts:
+
+START TRANSACTION;
+
+-- insert a new order for the user
+INSERT INTO orders (userid, haspaid)
+VALUES (1, 0);
+
+-- get the orderid of the new order
+SET @orderid = LAST_INSERT_ID();
+
+-- update the orderid for the user's cart items
+UPDATE carts
+SET orderid = @orderid
+WHERE productid IN (SELECT productid FROM products WHERE categoryid = 1);
+
+-- commit the transaction
+COMMIT;
+
+
+
+-- Query to update the delivery person for an order:
+
+START TRANSACTION;
+
+-- update the delivery person for the order
+UPDATE orders
+SET delivererid = 1
+WHERE orderid = 1;
+
+-- check if the order has been paid
+SELECT haspaid INTO @haspaid FROM orders WHERE orderid = 1;
+
+-- if the order has been paid, update the delivery person's status
+IF @haspaid = 1 THEN
+  UPDATE delivery_persons
+  SET deliverystatus = 'On delivery'
+  WHERE deliveryid = 1;
+END IF;
+
+-- commit the transaction
+COMMIT;
+
+
+
+-- Query to add a new category and update the products in the existing category 
+
+START TRANSACTION;
+
+-- insert the new category
+INSERT INTO categories (categoryname)
+VALUES ('New Category');
+
+-- get the categoryid of the new category
+SET @categoryid = LAST_INSERT_ID();
+
+-- update the categoryid for the products in the existing category
+UPDATE products
+SET categoryid = @categoryid
+WHERE categoryid = 1;
+
+-- commit the transaction
+COMMIT;
+
+
+
+-- Query to add a new review and update the product's rating:
+
+START TRANSACTION;
+
+-- insert the new review
+INSERT INTO reviews (productid, userid, Rating)
+VALUES (1, 1, 5);
+
+-- get the new average rating for the product
+SELECT AVG(Rating) INTO @avgrating FROM reviews WHERE productid = 1;
+
+-- update the product's rating
+UPDATE products
+SET rating = @avgrating
+WHERE productid = 1;
+
+-- commit the transaction
+COMMIT;
+
+
+

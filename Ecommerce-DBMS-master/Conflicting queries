@@ -1,0 +1,49 @@
+-- Query 1
+
+-- User A is trying to place an order while the same product is being deleted by User B
+BEGIN TRANSACTION;
+
+-- User A is placing an order
+INSERT INTO orders (userid) VALUES (1);
+SET @order_id = LAST_INSERT_ID();
+
+-- User B is trying to delete the product
+DELETE FROM products WHERE productid = 1;
+
+-- Commit the transaction
+COMMIT;
+
+
+
+
+-- Query 2
+
+-- User A is trying to add a product to their cart while the same product is being updated by User B
+BEGIN TRANSACTION;
+
+-- User A is adding a product to their cart
+INSERT INTO carts (productid, orderid) VALUES (1, 1);
+
+-- User B is trying to update the price of the product
+UPDATE products SET Price = 10 WHERE productid = 1;
+
+-- Commit the transaction
+COMMIT;
+
+
+
+
+-- Query 3
+
+-- User A is trying to place an order while the same product is being updated by User B
+BEGIN TRANSACTION;
+
+-- User A is placing an order
+INSERT INTO orders (userid) VALUES (1);
+SET @order_id = LAST_INSERT_ID();
+
+-- User B is trying to update the price of the product
+UPDATE products SET Price = 10 WHERE productid = 1;
+
+-- Commit the transaction
+COMMIT;
